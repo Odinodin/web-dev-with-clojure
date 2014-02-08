@@ -1,9 +1,12 @@
 (ns guestbook.repl
   (:use guestbook.handler
         ring.server.standalone
+
         [ring.middleware file-info file])
   ;; Standard stuff
-  (:require [clojure.pprint :refer [pprint]]))
+  (:require [clojure.pprint :refer [pprint]]
+            [guestbook.models.db :as db]
+            [guestbook.routes.home :as home]))
 
 
 (defonce server (atom nil))
@@ -35,3 +38,16 @@
 (defn stop-server []
   (.stop @server)
   (reset! server nil))
+
+#_(start-server)
+#_(stop-server)
+(stop-server)
+(start-server)
+
+#_(db/create-guestbook-table)
+
+(clojure.pprint/pprint (db/read-guests))
+
+(db/save-message "odin" "trala lla")
+
+(db/clear)

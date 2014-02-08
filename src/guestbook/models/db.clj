@@ -26,6 +26,12 @@
                            (doall res))))
 
 
+(defn clear []
+  (sql/with-connection
+   db
+   (sql/do-commands "DELETE FROM guestbook")))
+
+
 (defn save-message [name message]
   (sql/with-connection
    db
