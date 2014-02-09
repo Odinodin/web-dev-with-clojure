@@ -6,6 +6,7 @@
   ;; Standard stuff
   (:require [clojure.pprint :refer [pprint]]
             [guestbook.models.db :as db]
+            [guestbook.routes.auth :as auth]
             [guestbook.routes.home :as home]))
 
 
@@ -41,13 +42,25 @@
 
 #_(start-server)
 #_(stop-server)
-(stop-server)
-(start-server)
+
+
+#_(auth/handle-login "odin" "zak123")
 
 #_(db/create-guestbook-table)
 
-(clojure.pprint/pprint (db/read-guests))
 
-(db/save-message "odin" "trala lla")
+#_(clojure.pprint/pprint (db/read-guests))
 
-(db/clear)
+#_(db/save-message "odin" "trala lla")
+
+#_(db/clear)
+
+#_(db/get-user "odinodin")
+
+;; Users
+#_(db/create-user-table)
+
+#_(db/add-user-record {:id "odin" :pass "abc"})
+
+#_(db/get-user "odin")
+

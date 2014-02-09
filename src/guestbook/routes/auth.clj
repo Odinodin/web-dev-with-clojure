@@ -1,6 +1,7 @@
 (ns guestbook.routes.auth
   (:require [compojure.core :refer [defroutes GET POST]]
             [guestbook.views.layout :as layout]
+            [guestbook.models.db :as db]
             [noir.response :refer [redirect]]
             [noir.validation :refer [rule errors? has-value? on-error]]
             [noir.session :as session]
@@ -26,37 +27,49 @@
             (submit-button "login"))))
 
 
-(defn handle-login [id pass]
-  (rule (has-value? id)
-        [:id "screen name is required"])
-  (rule (= id "foo")
-        [:id "unknown user"])
-  (rule (has-value? pass)
-        [:pass "password is required"])
-  (rule (= pass "bar")
-        [:pass "invalid password"])
 
-  (if (errors? :id :pass)
-    (login-page)
-    (do
-      (session/put! :user id)
-      (redirect "/"))))
+
+
+(defn handle-login [id pass]
+
+  (let [user (db/get-user id)]
+    (rule (has-value? id)
+          [:id "Screen name is required"])
+    (rule (has-value? pass)
+          [:pass "password is required"])
+    (rule (and user (crypt/compare pass (:pass user)))
+          [:pass "invalid password"])
+
+    (if (errors? :id :pass)
+      (login-page)
+      (do
+        (session/put! :user id)
+        (redirect "/")))))
 
 (defn registration-page []
   (layout/common
    (form-to [:post "/register"]
-            (control text-field :id "screen name")
+            (control text-field :id "Screen name")
             (control password-field :pass "password")
             (control password-field :pass1 "retype password")
             (submit-button "create-accound"))))
 
+
+(defn handle-registration [id pass pass1]
+  (rule (= pass pass1)
+        [:pass "password was not retyped correctly!!"])
+  (if (errors? :pass)
+    (registration-page)
+    (do
+      (println "REGISTERING!")
+      (db/add-user-record {:id id :pass (crypt/encrypt pass)})
+      (println "user created " (db/get-user id))
+      (redirect "/login"))))
+
 (defroutes auth-routes
   (GET "/register" [_] (registration-page))
   (POST "/register" [id pass pass1]
-        (if (= pass pass1)
-          (redirect "/")
-          (registration-page)))
-
+        (handle-registration id pass pass1))
   (GET "/login" [] (login-page))
   (POST "/login" [id pass]
         (handle-login id pass))
